@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:stream_loader/stream_loader.dart';
@@ -10,22 +11,23 @@ import 'package:built_collection/built_collection.dart';
 void main() => runApp(MyApp());
 
 Stream<BuiltList<Country>> getCountries() async* {
-  final response = await http.get('http://country.io/names.json');
+  final response = await http
+      .get('https://restcountries.eu/rest/v2/all?fields=name;alpha2Code;');
   if (response.statusCode != HttpStatus.ok) {
     throw Exception(
         'Get countries not success, with status code: ${response.statusCode} and body: ${response.body}');
   }
-  var json = jsonDecode(response.body) as Map<String, dynamic>;
-  var countries = json.entries
+  final listOfMaps =
+      (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+  yield listOfMaps
       .map(
-        (entry) => Country(
+        (json) => Country(
           (b) => b
-            ..name = entry.value
-            ..code = entry.key,
+            ..name = json['name']
+            ..code = json['alpha2Code'],
         ),
       )
-      .toList();
-  yield BuiltList.of(countries);
+      .toBuiltList();
 }
 
 class MyApp extends StatelessWidget {
@@ -76,6 +78,7 @@ class MyHomePage extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.subtitle,
                   ),
+                  const SizedBox(height: 12),
                   RaisedButton(
                     onPressed: bloc.fetch,
                     padding: const EdgeInsets.all(16),
@@ -87,16 +90,19 @@ class MyHomePage extends StatelessWidget {
             );
           }
 
-          var countries = state.content;
+          final countries = state.content;
           return RefreshIndicator(
             onRefresh: bloc.refresh,
             child: ListView.builder(
               itemCount: countries.length,
               itemBuilder: (context, index) {
-                var country = countries[index];
+                final country = countries[index];
                 return ListTile(
-                  leading: Image.network(
-                      'https://www.countryflags.io/${country.code.toLowerCase()}/shiny/64.png'),
+                  leading: FadeInImage.assetNetwork(
+                    placeholder: null,
+                    image:
+                        'https://www.countryflags.io/${country.code.toLowerCase()}/shiny/64.png',
+                  ),
                   title: Text(country.name),
                   subtitle: Text(country.code),
                 );
