@@ -98,10 +98,10 @@ class MyHomePage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final country = countries[index];
                 return ListTile(
-                  leading: FadeInImage.assetNetwork(
-                    placeholder: null,
-                    image:
-                        'https://www.countryflags.io/${country.code.toLowerCase()}/shiny/64.png',
+                  leading: Image.network(
+                    'https://www.countryflags.io/${country.code.toLowerCase()}/shiny/64.png',
+                    width: 64,
+                    fit: BoxFit.cover,
                   ),
                   title: Text(country.name),
                   subtitle: Text(country.code),
