@@ -1,34 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:stream_loader/stream_loader.dart';
-import 'package:stream_loader_demo/country.dart';
-import 'package:built_collection/built_collection.dart';
+import 'package:stream_loader_demo/pages/count_down/count_down_new_year_page.dart';
+import 'package:stream_loader_demo/pages/fetch_json/fetch_json_page.dart';
+import 'package:stream_loader_demo/pages/rx_prefs/rx_prefs_page.dart';
 
 void main() => runApp(MyApp());
-
-Stream<BuiltList<Country>> getCountries() async* {
-  final response = await http
-      .get('https://restcountries.eu/rest/v2/all?fields=name;alpha2Code;');
-  if (response.statusCode != HttpStatus.ok) {
-    throw Exception(
-        'Get countries not success, with status code: ${response.statusCode} and body: ${response.body}');
-  }
-  final listOfMaps =
-      (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
-  yield listOfMaps
-      .map(
-        (json) => Country(
-          (b) => b
-            ..name = json['name']
-            ..code = json['alpha2Code'],
-        ),
-      )
-      .toBuiltList();
-}
 
 class MyApp extends StatelessWidget {
   @override
@@ -37,101 +13,89 @@ class MyApp extends StatelessWidget {
       title: 'stream_loader demo',
       theme: ThemeData(
         fontFamily: 'GoogleSans',
-        primarySwatch: Colors.red,
+        brightness: Brightness.dark,
       ),
       debugShowCheckedModeBanner: false,
-      home: MyHomePage(),
+      home: const MyHomePage(),
+      routes: <String, WidgetBuilder>{
+        FetchJsonPage.routeName: (context) => FetchJsonPage(),
+        CountDownNewYearPage.routeName: (context) => CountDownNewYearPage(),
+        RxPrefsPage.routeName: (context) => RxPrefsPage(),
+      },
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  final scaffoldKey = GlobalKey<ScaffoldState>();
+  const MyHomePage({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: scaffoldKey,
       appBar: AppBar(
-        title: Text('Home'),
+        title: Text('stream_loader examples'),
       ),
-      body: LoaderWidget<BuiltList<Country>>(
-        blocProvider: () => LoaderBloc(
-          loaderFunction: getCountries,
-          refresherFunction: getCountries,
-          initialContent: BuiltList.of([]),
-        ),
-        messageHandler: messageHandler,
-        builder: (context, state, bloc) {
-          if (state.isLoading) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          if (state.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    state.error.toString(),
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.subtitle,
-                  ),
-                  const SizedBox(height: 12),
-                  RaisedButton(
-                    onPressed: bloc.fetch,
-                    padding: const EdgeInsets.all(16),
-                    child: Text('Retry'),
-                    color: Theme.of(context).accentColor,
-                  ),
-                ],
+      body: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const <Widget>[
+              HomeButton(
+                title: 'Fetch json',
+                routeName: FetchJsonPage.routeName,
               ),
-            );
-          }
-
-          final countries = state.content;
-          return RefreshIndicator(
-            onRefresh: bloc.refresh,
-            child: ListView.builder(
-              itemCount: countries.length,
-              itemBuilder: (context, index) {
-                final country = countries[index];
-                return ListTile(
-                  leading: Image.network(
-                    'https://www.countryflags.io/${country.code.toLowerCase()}/shiny/64.png',
-                    width: 64,
-                    fit: BoxFit.cover,
-                  ),
-                  title: Text(country.name),
-                  subtitle: Text(country.code),
-                );
-              },
-            ),
-          );
-        },
+              HomeButton(
+                title: 'Count down new year',
+                routeName: CountDownNewYearPage.routeName,
+              ),
+              HomeButton(
+                title: 'rx_shared_preferences',
+                routeName: RxPrefsPage.routeName,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
+}
 
-  void messageHandler(
-    LoaderMessage<BuiltList<Country>> message,
-    LoaderBloc<BuiltList<Country>> bloc,
-  ) {
-    void showSnackBar(String message) {
-      scaffoldKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 1),
+class HomeButton extends StatelessWidget {
+  final String title;
+  final String routeName;
+
+  const HomeButton({
+    Key key,
+    @required this.title,
+    @required this.routeName,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final rectangleBorder = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20),
+    );
+    const margin = EdgeInsets.symmetric(vertical: 12);
+    const padding = EdgeInsets.symmetric(vertical: 16);
+    final titleStyle = Theme.of(context).textTheme.button.copyWith(
+          color: Theme.of(context).primaryColor,
+        );
+
+    return Container(
+      width: width / 2,
+      margin: margin,
+      child: RaisedButton(
+        child: Text(
+          title,
+          style: titleStyle,
         ),
-      );
-    }
-
-    message.fold(
-      onFetchFailure: null,
-      onFetchSuccess: null,
-      onRefreshFailure: null,
-      onRefreshSuccess: (_) => showSnackBar('Refresh success'),
+        onPressed: () => Navigator.pushNamed(context, routeName),
+        color: Theme.of(context).accentColor,
+        padding: padding,
+        shape: rectangleBorder,
+      ),
     );
   }
 }
