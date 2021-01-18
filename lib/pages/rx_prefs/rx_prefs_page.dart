@@ -22,7 +22,7 @@ class RxPrefsPage extends StatelessWidget {
                 .getStringListStream(keyListStrings)
                 .map((strings) => strings ?? []),
             initialContent: [],
-            enableLogger: true,
+            logger: print,
           ),
           builder: (context, state, bloc) {
             if (state.isLoading) {
@@ -37,7 +37,7 @@ class RxPrefsPage extends StatelessWidget {
               return Center(
                 child: Text(
                   'Empty list',
-                  style: Theme.of(context).textTheme.title,
+                  style: Theme.of(context).textTheme.headline6,
                 ),
               );
             }

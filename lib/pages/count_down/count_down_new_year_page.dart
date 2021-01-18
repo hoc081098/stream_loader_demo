@@ -12,7 +12,7 @@ class CountDownNewYearPage extends StatelessWidget {
   final stream = Stream.periodic(const Duration(milliseconds: 500))
       .map((_) => newYear.difference(DateTime.now()))
       .map(_formatDuration)
-      .shareValueDistinct();
+      .shareValueDistinct(null);
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class CountDownNewYearPage extends StatelessWidget {
           child: LoaderWidget<_HMS>(
             blocProvider: () => LoaderBloc(
               loaderFunction: () => stream,
-              enableLogger: true,
+              logger: print,
             ),
             builder: (context, state, _) {
               if (state.isLoading) {
@@ -63,11 +63,11 @@ class _CountDownTablet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.display1.copyWith(
+    final style = Theme.of(context).textTheme.headline4.copyWith(
           fontSize: 64,
           color: Theme.of(context).accentColor,
         );
-    final style2 = Theme.of(context).textTheme.display1.copyWith(
+    final style2 = Theme.of(context).textTheme.headline4.copyWith(
           fontSize: 48,
           fontWeight: FontWeight.w500,
         );
@@ -134,11 +134,11 @@ class _CountDownMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.display1.copyWith(
+    final style = Theme.of(context).textTheme.headline4.copyWith(
           fontSize: 64,
           color: Theme.of(context).accentColor,
         );
-    final style2 = Theme.of(context).textTheme.display1.copyWith(
+    final style2 = Theme.of(context).textTheme.headline4.copyWith(
           fontSize: 48,
           fontWeight: FontWeight.w500,
         );

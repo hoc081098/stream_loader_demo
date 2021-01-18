@@ -30,14 +30,12 @@ Stream<BuiltList<Country>> getCountries() async* {
 
 class FetchJsonPage extends StatelessWidget {
   static const routeName = '/fetch_json';
-  final scaffoldKey = GlobalKey<ScaffoldState>();
 
   FetchJsonPage({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: scaffoldKey,
       appBar: AppBar(
         title: Text('Home'),
       ),
@@ -47,7 +45,7 @@ class FetchJsonPage extends StatelessWidget {
           refresherFunction: getCountries,
           initialContent: BuiltList.of([]),
         ),
-        messageHandler: messageHandler,
+        messageHandler: (msg, bloc) => messageHandler(msg, bloc, context),
         builder: (context, state, bloc) {
           if (state.isLoading) {
             return Center(
@@ -62,7 +60,7 @@ class FetchJsonPage extends StatelessWidget {
                   Text(
                     state.error.toString(),
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.subtitle,
+                    style: Theme.of(context).textTheme.subtitle2,
                   ),
                   const SizedBox(height: 12),
                   RaisedButton(
@@ -103,9 +101,10 @@ class FetchJsonPage extends StatelessWidget {
   void messageHandler(
     LoaderMessage<BuiltList<Country>> message,
     LoaderBloc<BuiltList<Country>> bloc,
+    BuildContext context,
   ) {
     void showSnackBar(String message) {
-      scaffoldKey.currentState?.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
           duration: const Duration(seconds: 1),
@@ -114,9 +113,9 @@ class FetchJsonPage extends StatelessWidget {
     }
 
     message.fold(
-      onFetchFailure: null,
-      onFetchSuccess: null,
-      onRefreshFailure: null,
+      onFetchFailure: (e, s) {},
+      onFetchSuccess: (d) {},
+      onRefreshFailure: (e, s) {},
       onRefreshSuccess: (_) => showSnackBar('Refresh success'),
     );
   }
