@@ -7,7 +7,7 @@ part 'models.dart';
 
 class CountDownNewYearPage extends StatelessWidget {
   static const routeName = '/count_down_new_year';
-  static final newYear = DateTime(2021, DateTime.january, 1);
+  static final newYear = DateTime(2022, DateTime.january, 1);
 
   final stream = Stream.periodic(const Duration(milliseconds: 500))
       .map((_) => newYear.difference(DateTime.now()))
